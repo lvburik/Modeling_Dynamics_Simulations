@@ -52,4 +52,35 @@ for timestep = 1:n_timesteps-1
     opinion_matrixes(:, :, timestep+1) = Z + dt*Z_dot;
 end
 
+%% analysis
+
+%plot opinions of agents over time
+time = (0:n_timesteps-1) * dt;
+
+% Colors for options
+colors = {'b', 'r'};  % blue for option 1, red for option 2
+
+figure;
+hold on;
+
+% Loop over agents
+for agent = 1:3
+    subplot(3,1,agent);  % One subplot per agent
+    hold on;
+    
+    % Loop over options
+    for option = 1:2
+        plot(time, squeeze(opinion_matrixes(agent, option, :)), colors{option}, 'LineWidth', 1.5);
+    end
+    
+    xlabel('Time');
+    ylabel(['Agent ', num2str(agent), ' opinion']);
+    legend('Option A','Option B');
+    grid on;
+    title(['Opinions over time for Agent ', num2str(agent)]);
+end
+
+hold off;
+
+
 
