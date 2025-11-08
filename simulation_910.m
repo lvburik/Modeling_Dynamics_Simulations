@@ -2,63 +2,56 @@ clear
 
 %% Parameters
 N_a = 3;                %number of agents
+U_values = linspace(0, 2, 101);
+n_timesteps = 1000;
+Gamma = -0.1;
 
-dt = 0.01;              %timestep
-n_timesteps = 1000;      %number of timesteps
-
-% homogenious parameters
-
-d = 1;
-U = 10;
-Alpha = 1;
-Gamma = 0.1;
-
-
-%homogenious so derive some matrixes based on general parameters
-
-d = d*diag(ones(1, N_a));
-b = zeros(N_a, 1);                  %no bias
-U = U*diag(ones(1, N_a));
-
-A = ones(N_a)-eye(N_a);               %maximally connected
-
-opinions = zeros(N_a, 1, n_timesteps);
-
-%% Initial opinions:
-
-%random
-opinions(:, 1, 1) = 2*rand(1, N_a)-1;
-
-%% Simulation:
-for timestep = 1:n_timesteps-1
-    X = opinions(:, 1, timestep);
-    X_dot = -d*X + b + U*(tanh((Alpha + Gamma*A)*X));
-    
-    opinions(:, :, timestep+1) = X + dt*X_dot;
+%% simulations
+initial_opinions = 1 - 2 * randn(1, N_a);
+final_opinions = zeros(N_a, 2, length(U_values));
+for ii = 1:length(U_values)
+    U = U_values(ii);
+    final_opinions(:, 1, ii) = SimulateOpinions(N_a, U, Gamma, n_timesteps, initial_opinions);
+    final_opinions(:, 2, ii) = SimulateOpinions(N_a, U, Gamma, n_timesteps, -initial_opinions);
 end
 
-%%Plotting
 
-%plot opinions of agents over time
-time = (0:n_timesteps-1) * dt;
 
-% Colors for agents
-colors = {'b', 'r', 'g'}; 
-
+%% plot results
 figure;
 hold on;
 
-% Loop over agents
-for agent = 1:N_a
-    plot(time, squeeze(opinions(agent, 1, :)), colors{agent}, 'LineWidth', 1.5);
+%colors for negative and positive branches: 
+colors = {'b', 'r'};
+
+for branch = 1:2
+    plot(U_values, squeeze(mean(final_opinions(:, branch, :), 1)), colors{branch}, 'LineWidth', 1.5);
 end
 
-xlabel('Time');
-ylabel('opinion');
-legend('Agent 1','Agent 2', 'Agent 3');
-grid on;
-title('Opinions over time for each Agent');
-hold off;
+xlabel('u'); ylabel('final_opinion'); grid on; hold off;
 
+function final_opinions = SimulateOpinions(N_a, U, Gamma, n_timesteps, initial_opinions)
+    %parameters
+    dt = 0.1;              %timestep
+    d = 1;
+    Alpha = 1;
+    
 
+    b = zeros(N_a, 1);                  %no bias
+    A = ones(N_a)-eye(N_a);               %maximally connected
+
+    opinions = zeros(N_a, 1, n_timesteps);
+
+    % Initial random opinions:
+    opinions(:, 1, 1) = initial_opinions;
+
+    %Simulation:
+    for timestep = 1:n_timesteps-1
+        X = opinions(:, 1, timestep);
+        X_dot = -d*X + b + U*(tanh((Alpha*eye(N_a) + Gamma*A)*X));
+    
+        opinions(:, :, timestep+1) = X + dt*X_dot;
+    end
+    final_opinions = opinions(:,:, end);
+end
 
