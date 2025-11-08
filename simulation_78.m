@@ -1,3 +1,5 @@
+clear
+
 %% Parameters
 N_o = 2;                %number of opinions
 N_a = 3;                %number of agents
@@ -81,6 +83,7 @@ for agent = 1:3
 end
 
 hold off;
+
 
 
 
